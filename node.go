@@ -5,9 +5,10 @@ import (
 )
 
 type Node struct {
-	key                 int64
-	red                 bool
-	left, right, parent *Node
+	key         int64
+	value       interface{}
+	red         bool
+	left, right *Node
 }
 
 func (n *Node) height() chan int {
@@ -90,43 +91,43 @@ func (n *Node) walkLevelOrder(queue []*Node, f func(*Node)) {
 	}
 }
 
-func (n *Node) search(v int64) *Node {
+func (n *Node) search(k int64) *Node {
 	if n == nil {
 		return nil
-	} else if n.key == v {
+	} else if n.key == k {
 		return n
-	} else if n.key > v {
-		return n.left.search(v)
+	} else if n.key > k {
+		return n.left.search(k)
 	} else {
-		return n.right.search(v)
+		return n.right.search(k)
 	}
 }
 
-func (n *Node) searchUpper(v int64) *Node {
+func (n *Node) searchUpper(k int64) *Node {
 	if n == nil {
 		return nil
-	} else if n.key == v {
+	} else if n.key == k {
 		return n
-	} else if n.key > v {
-		nc := n.left.searchUpper(v)
+	} else if n.key > k {
+		nc := n.left.searchUpper(k)
 		if nc == nil {
 			return n
 		}
 		return nc
 	} else {
-		return n.right.searchUpper(v)
+		return n.right.searchUpper(k)
 	}
 }
 
-func (n *Node) searchLower(v int64) *Node {
+func (n *Node) searchLower(k int64) *Node {
 	if n == nil {
 		return nil
-	} else if n.key == v {
+	} else if n.key == k {
 		return n
-	} else if n.key > v {
-		return n.left.searchLower(v)
+	} else if n.key > k {
+		return n.left.searchLower(k)
 	} else {
-		nc := n.right.searchLower(v)
+		nc := n.right.searchLower(k)
 		if nc == nil {
 			return n
 		}
@@ -143,9 +144,9 @@ func (e keyError) Error() string {
 const KeyExistsError = keyError("Key already exists in tree.")
 const KeyDoesNotExistError = keyError("Key not found.")
 
-func (n *Node) insert(key int64) (*Node, error) {
+func (n *Node) insert(key int64, value interface{}) (*Node, error) {
 	if n == nil {
-		return &Node{key: key, red: true}, nil
+		return &Node{key: key, value: value, red: true}, nil
 	}
 
 	if isRed(n.left) && isRed(n.right) {
@@ -155,13 +156,13 @@ func (n *Node) insert(key int64) (*Node, error) {
 	if key == n.key {
 		return nil, KeyExistsError
 	} else if key < n.key {
-		newNode, err := n.left.insert(key)
+		newNode, err := n.left.insert(key, value)
 		if err != nil {
 			return nil, err
 		}
 		n.left = newNode
 	} else {
-		newNode, err := n.right.insert(key)
+		newNode, err := n.right.insert(key, value)
 		if err != nil {
 			return nil, err
 		}
@@ -214,27 +215,27 @@ func (n *Node) deleteMin() *Node {
 	return n.fixUp()
 }
 
-func (n *Node) delete(v int64) *Node {
-	if v < n.key {
+func (n *Node) delete(k int64) *Node {
+	if k < n.key {
 		if !isRed(n.left) && !isRed(n.left.left) {
 			n = n.moveRedLeft()
 		}
-		n.left = n.left.delete(v)
+		n.left = n.left.delete(k)
 	} else {
 		if isRed(n.left) {
 			n = n.rotateRight()
 		}
-		if v == n.key && n.right == nil {
+		if k == n.key && n.right == nil {
 			return nil
 		}
 		if !isRed(n.right) && !isRed(n.right.left) {
 			n = n.moveRedRight()
 		}
-		if v == n.key {
+		if k == n.key {
 			n.key = n.right.min().key
 			n.right = n.right.deleteMin()
 		} else {
-			n.right = n.right.delete(v)
+			n.right = n.right.delete(k)
 		}
 	}
 

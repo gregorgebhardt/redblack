@@ -1,6 +1,8 @@
 package redblack
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Tree struct {
 	root *Node
@@ -16,19 +18,19 @@ const (
 	LEVELORDER
 )
 
-func (t *Tree) Search(v int64) bool {
-	return t.root.search(v) != nil
+func (t *Tree) Search(k int64) bool {
+	return t.root.search(k) != nil
 }
 
-func (t *Tree) SearchUpper(v int64) (int64, error) {
-	if n := t.root.searchUpper(v); n != nil {
+func (t *Tree) SearchUpper(k int64) (int64, error) {
+	if n := t.root.searchUpper(k); n != nil {
 		return n.key, nil
 	}
 	return 0, KeyDoesNotExistError
 }
 
-func (t *Tree) SearchLower(v int64) (int64, error) {
-	if n := t.root.searchLower(v); n != nil {
+func (t *Tree) SearchLower(k int64) (int64, error) {
+	if n := t.root.searchLower(k); n != nil {
 		return n.key, nil
 	}
 	return 0, KeyDoesNotExistError
@@ -36,8 +38,8 @@ func (t *Tree) SearchLower(v int64) (int64, error) {
 
 // Insert adds a new node to the tree.
 // Returns true if the insertion was successful and false if the node already exists
-func (t *Tree) Insert(v int64) error {
-	newNode, err := t.root.insert(v)
+func (t *Tree) Insert(key int64, value interface{}) error {
+	newNode, err := t.root.insert(key, value)
 	if err != nil {
 		return err
 	}
@@ -52,10 +54,10 @@ func (t *Tree) Delete(v int64) {
 	t.root.red = false
 }
 
-func NewTree(values []int64) *Tree {
+func NewTree(items map[int64]interface{}) *Tree {
 	tree := new(Tree)
-	for _, v := range values {
-		if err := tree.Insert(v); err != nil {
+	for k, v := range items {
+		if err := tree.Insert(k, v); err != nil {
 			fmt.Errorf("Warning: error while trying to insert %v", v)
 		}
 	}
@@ -66,11 +68,11 @@ func (t *Tree) Height() int {
 	return <-t.root.height()
 }
 
-func (t *Tree) ToSortedSlice() []int64 {
-	values := make([]int64, 0, t.num)
+func (t *Tree) ToSortedSlice() []interface{} {
+	values := make([]interface{}, 0, t.num)
 	f := func(n *Node) {
 		if n != nil {
-			values = append(values, n.key)
+			values = append(values, n.value)
 		}
 	}
 	t.root.walkInOrder(f)
