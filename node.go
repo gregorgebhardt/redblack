@@ -5,7 +5,7 @@ import (
 )
 
 type Node struct {
-	key                 int
+	key                 int64
 	red                 bool
 	left, right, parent *Node
 }
@@ -90,7 +90,7 @@ func (n *Node) walkLevelOrder(queue []*Node, f func(*Node)) {
 	}
 }
 
-func (n *Node) search(v int) *Node {
+func (n *Node) search(v int64) *Node {
 	if n == nil {
 		return nil
 	} else if n.key == v {
@@ -102,13 +102,15 @@ func (n *Node) search(v int) *Node {
 	}
 }
 
-type KeyExistsError struct{}
+type keyExistsError string
 
-func (e KeyExistsError) Error() string {
-	return "Key is already in tree."
+func (e keyExistsError) Error() string {
+	return string(e)
 }
 
-func (n *Node) insert(key int) (*Node, error) {
+const KeyExistsError = keyExistsError("Key already exists in tree.")
+
+func (n *Node) insert(key int64) (*Node, error) {
 	if n == nil {
 		return &Node{key: key, red: true}, nil
 	}
@@ -118,7 +120,7 @@ func (n *Node) insert(key int) (*Node, error) {
 	}
 
 	if key == n.key {
-		return nil, KeyExistsError{}
+		return nil, KeyExistsError
 	} else if key < n.key {
 		newNode, err := n.left.insert(key)
 		if err != nil {
@@ -179,7 +181,7 @@ func (n *Node) deleteMin() *Node {
 	return n.fixUp()
 }
 
-func (n *Node) delete(v int) *Node {
+func (n *Node) delete(v int64) *Node {
 	if v < n.key {
 		if !isRed(n.left) && !isRed(n.left.left) {
 			n = n.moveRedLeft()

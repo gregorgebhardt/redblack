@@ -4,7 +4,7 @@ import "fmt"
 
 type Tree struct {
 	root *Node
-	num  int
+	num  uint64
 }
 
 type WalkOrder int
@@ -18,7 +18,7 @@ const (
 
 // Insert adds a new node to the tree.
 // Returns true if the insertion was successful and false if the node already exists
-func (t *Tree) Insert(v int) error {
+func (t *Tree) Insert(v int64) error {
 	newNode, err := t.root.insert(v)
 	if err != nil {
 		return err
@@ -29,12 +29,12 @@ func (t *Tree) Insert(v int) error {
 	return nil
 }
 
-func (t *Tree) Delete(v int) {
+func (t *Tree) Delete(v int64) {
 	t.root = t.root.delete(v)
 	t.root.red = false
 }
 
-func NewTree(values []int) *Tree {
+func NewTree(values []int64) *Tree {
 	tree := new(Tree)
 	for _, v := range values {
 		if err := tree.Insert(v); err != nil {
@@ -48,8 +48,8 @@ func (t *Tree) Height() int {
 	return <-t.root.height()
 }
 
-func (t *Tree) ToSortedSlice() []int {
-	values := make([]int, 0, t.num)
+func (t *Tree) ToSortedSlice() []int64 {
+	values := make([]int64, 0, t.num)
 	f := func(n *Node) {
 		if n != nil {
 			values = append(values, n.key)
