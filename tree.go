@@ -58,6 +58,13 @@ func (t *Tree) Delete(v int64) (success bool) {
 	return success
 }
 
+func (t *Tree) DeleteMin() {
+	if t.root != nil {
+		t.root.deleteMin()
+		t.num--
+	}
+}
+
 func NewTree(items map[int64]interface{}) *Tree {
 	tree := new(Tree)
 	for k, v := range items {
