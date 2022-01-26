@@ -215,18 +215,19 @@ func (n *Node) deleteMin() *Node {
 	return n.fixUp()
 }
 
-func (n *Node) delete(k int64) *Node {
+func (n *Node) delete(k int64) (*Node, bool) {
+	var success bool
 	if k < n.key {
 		if !isRed(n.left) && !isRed(n.left.left) {
 			n = n.moveRedLeft()
 		}
-		n.left = n.left.delete(k)
+		n.left, success = n.left.delete(k)
 	} else {
 		if isRed(n.left) {
 			n = n.rotateRight()
 		}
 		if k == n.key && n.right == nil {
-			return nil
+			return nil, true
 		}
 		if !isRed(n.right) && !isRed(n.right.left) {
 			n = n.moveRedRight()
@@ -234,12 +235,13 @@ func (n *Node) delete(k int64) *Node {
 		if k == n.key {
 			n.key = n.right.min().key
 			n.right = n.right.deleteMin()
+			success = true
 		} else {
-			n.right = n.right.delete(k)
+			n.right, success = n.right.delete(k)
 		}
 	}
 
-	return n.fixUp()
+	return n.fixUp(), success
 }
 
 func (n *Node) moveRedLeft() *Node {
