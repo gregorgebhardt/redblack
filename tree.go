@@ -16,6 +16,24 @@ const (
 	LEVELORDER
 )
 
+func (t *Tree) Search(v int64) bool {
+	return t.root.search(v) != nil
+}
+
+func (t *Tree) SearchUpper(v int64) (int64, error) {
+	if n := t.root.searchUpper(v); n != nil {
+		return n.key, nil
+	}
+	return 0, KeyDoesNotExistError
+}
+
+func (t *Tree) SearchLower(v int64) (int64, error) {
+	if n := t.root.searchLower(v); n != nil {
+		return n.key, nil
+	}
+	return 0, KeyDoesNotExistError
+}
+
 // Insert adds a new node to the tree.
 // Returns true if the insertion was successful and false if the node already exists
 func (t *Tree) Insert(v int64) error {

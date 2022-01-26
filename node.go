@@ -102,13 +102,46 @@ func (n *Node) search(v int64) *Node {
 	}
 }
 
-type keyExistsError string
+func (n *Node) searchUpper(v int64) *Node {
+	if n == nil {
+		return nil
+	} else if n.key == v {
+		return n
+	} else if n.key > v {
+		nc := n.left.searchUpper(v)
+		if nc == nil {
+			return n
+		}
+		return nc
+	} else {
+		return n.right.searchUpper(v)
+	}
+}
 
-func (e keyExistsError) Error() string {
+func (n *Node) searchLower(v int64) *Node {
+	if n == nil {
+		return nil
+	} else if n.key == v {
+		return n
+	} else if n.key > v {
+		return n.left.searchLower(v)
+	} else {
+		nc := n.right.searchLower(v)
+		if nc == nil {
+			return n
+		}
+		return nc
+	}
+}
+
+type keyError string
+
+func (e keyError) Error() string {
 	return string(e)
 }
 
-const KeyExistsError = keyExistsError("Key already exists in tree.")
+const KeyExistsError = keyError("Key already exists in tree.")
+const KeyDoesNotExistError = keyError("Key not found.")
 
 func (n *Node) insert(key int64) (*Node, error) {
 	if n == nil {
