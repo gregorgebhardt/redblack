@@ -6,7 +6,7 @@ import (
 
 type Tree struct {
 	root *Node
-	num  uint64
+	num  int
 }
 
 type WalkOrder int
@@ -49,9 +49,13 @@ func (t *Tree) Insert(key int64, value interface{}) error {
 	return nil
 }
 
-func (t *Tree) Delete(v int64) {
-	t.root = t.root.delete(v)
+func (t *Tree) Delete(v int64) (success bool) {
+	t.root, success = t.root.delete(v)
 	t.root.red = false
+	if success {
+		t.num--
+	}
+	return success
 }
 
 func NewTree(items map[int64]interface{}) *Tree {
@@ -66,6 +70,10 @@ func NewTree(items map[int64]interface{}) *Tree {
 
 func (t *Tree) Height() int {
 	return <-t.root.height()
+}
+
+func (t *Tree) Len() int {
+	return t.num
 }
 
 func (t *Tree) ToSortedSlice() []interface{} {
