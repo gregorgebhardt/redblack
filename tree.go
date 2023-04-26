@@ -83,6 +83,14 @@ func (t *Tree) Len() int {
 	return t.num
 }
 
+func (t *Tree) Min() interface{} {
+	return t.root.min().value
+}
+
+func (t *Tree) Max() interface{} {
+	return t.root.max().value
+}
+
 func (t *Tree) ToSortedSlice() []interface{} {
 	values := make([]interface{}, 0, t.num)
 	f := func(n *Node) {
