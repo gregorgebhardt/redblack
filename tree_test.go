@@ -143,10 +143,10 @@ func TestTree_SearchUpper(t1 *testing.T) {
 		wantErr bool
 	}{
 		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 10, 14, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 51, 67, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, -10, 1, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 100, 0, true},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 8, 8, false},
+		{"Test2", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 51, 67, false},
+		{"Test3", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, -10, 1, false},
+		{"Test4", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 100, 100, true},
+		{"Test5", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 8, 8, false},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
@@ -180,10 +180,10 @@ func TestTree_SearchLower(t1 *testing.T) {
 		wantErr bool
 	}{
 		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 10, 8, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 51, 50, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, -10, 0, true},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 100, 67, false},
-		{"Test1", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 8, 8, false},
+		{"Test2", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 51, 50, false},
+		{"Test3", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, -10, -10, true},
+		{"Test4", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 100, 67, false},
+		{"Test5", []int{1, 2, 5, 8, 14, 23, 44, 50, 67}, 8, 8, false},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {

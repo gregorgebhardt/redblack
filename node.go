@@ -2,16 +2,18 @@ package redblack
 
 import (
 	"math"
+
+	"golang.org/x/exp/constraints"
 )
 
-type Node struct {
-	key         int64
-	value       interface{}
+type Node[Key constraints.Ordered, T any] struct {
+	key         Key
+	value       T
 	red         bool
-	left, right *Node
+	left, right *Node[Key, T]
 }
 
-func (n *Node) height() chan int {
+func (n *Node[Key, T]) height() chan int {
 	c := make(chan int)
 	go func(c chan int) {
 		if n == nil {
@@ -30,30 +32,30 @@ func (n *Node) height() chan int {
 	return c
 }
 
-func (n *Node) width() int {
+func (n *Node[Key, T]) width() int {
 	h := <-n.height()
 	return int(math.Pow(2., float64(h-1)))
 }
 
-func (n *Node) min() *Node {
+func (n *Node[Key, T]) min() *Node[Key, T] {
 	if n.left != nil {
 		return n.left.min()
 	}
 	return n
 }
 
-func (n *Node) max() *Node {
+func (n *Node[Key, T]) max() *Node[Key, T] {
 	if n.right != nil {
 		return n.right.max()
 	}
 	return n
 }
 
-func (n *Node) isLeaf() bool {
+func (n *Node[Key, T]) isLeaf() bool {
 	return n.left == nil && n.right == nil
 }
 
-func (n *Node) walkInOrder(f func(*Node)) {
+func (n *Node[Key, T]) walkInOrder(f func(*Node[Key, T])) {
 	if n == nil {
 		f(n)
 	} else {
@@ -63,7 +65,7 @@ func (n *Node) walkInOrder(f func(*Node)) {
 	}
 }
 
-func (n *Node) walkPreOrder(f func(*Node)) {
+func (n *Node[Key, T]) walkPreOrder(f func(*Node[Key, T])) {
 	if n == nil {
 		f(n)
 	} else {
@@ -73,7 +75,7 @@ func (n *Node) walkPreOrder(f func(*Node)) {
 	}
 }
 
-func (n *Node) walkPostOrder(f func(*Node)) {
+func (n *Node[Key, T]) walkPostOrder(f func(*Node[Key, T])) {
 	if n == nil {
 		f(n)
 	} else {
@@ -83,7 +85,7 @@ func (n *Node) walkPostOrder(f func(*Node)) {
 	}
 }
 
-func (n *Node) walkLevelOrder(queue []*Node, f func(*Node)) {
+func (n *Node[Key, T]) walkLevelOrder(queue []*Node[Key, T], f func(*Node[Key, T])) {
 	f(n)
 	if n != nil {
 		queue = append(queue, n.left, n.right)
@@ -91,7 +93,7 @@ func (n *Node) walkLevelOrder(queue []*Node, f func(*Node)) {
 	}
 }
 
-func (n *Node) search(k int64) *Node {
+func (n *Node[Key, T]) search(k Key) *Node[Key, T] {
 	if n == nil {
 		return nil
 	} else if n.key == k {
@@ -103,7 +105,7 @@ func (n *Node) search(k int64) *Node {
 	}
 }
 
-func (n *Node) searchUpper(k int64) *Node {
+func (n *Node[Key, T]) searchUpper(k Key) *Node[Key, T] {
 	if n == nil {
 		return nil
 	} else if n.key == k {
@@ -119,7 +121,7 @@ func (n *Node) searchUpper(k int64) *Node {
 	}
 }
 
-func (n *Node) searchLower(k int64) *Node {
+func (n *Node[Key, T]) searchLower(k Key) *Node[Key, T] {
 	if n == nil {
 		return nil
 	} else if n.key == k {
@@ -144,9 +146,9 @@ func (e keyError) Error() string {
 const KeyExistsError = keyError("Key already exists in tree.")
 const KeyDoesNotExistError = keyError("Key not found.")
 
-func (n *Node) insert(key int64, value interface{}) (*Node, error) {
+func (n *Node[Key, T]) insert(key Key, value T) (*Node[Key, T], error) {
 	if n == nil {
-		return &Node{key: key, value: value, red: true}, nil
+		return &Node[Key, T]{key: key, value: value, red: true}, nil
 	}
 
 	if isRed(n.left) && isRed(n.right) {
@@ -173,17 +175,17 @@ func (n *Node) insert(key int64, value interface{}) (*Node, error) {
 	return n, nil
 }
 
-func isRed(n *Node) bool {
+func isRed[Key constraints.Ordered, T any](n *Node[Key, T]) bool {
 	return n != nil && n.red
 }
 
-func (n *Node) flipColors() {
+func (n *Node[Key, T]) flipColors() {
 	n.red = !n.red
 	n.left.red = !n.left.red
 	n.right.red = !n.right.red
 }
 
-func (n *Node) rotateLeft() *Node {
+func (n *Node[Key, T]) rotateLeft() *Node[Key, T] {
 	x := n.right
 	n.right = x.left
 	x.left = n
@@ -192,7 +194,7 @@ func (n *Node) rotateLeft() *Node {
 	return x
 }
 
-func (n *Node) rotateRight() *Node {
+func (n *Node[Key, T]) rotateRight() *Node[Key, T] {
 	x := n.left
 	n.left = x.right
 	x.right = n
@@ -201,7 +203,7 @@ func (n *Node) rotateRight() *Node {
 	return x
 }
 
-func (n *Node) deleteMin() *Node {
+func (n *Node[Key, T]) deleteMin() *Node[Key, T] {
 	if n.left == nil {
 		return nil
 	}
@@ -215,7 +217,7 @@ func (n *Node) deleteMin() *Node {
 	return n.fixUp()
 }
 
-func (n *Node) delete(k int64) (*Node, bool) {
+func (n *Node[Key, T]) delete(k Key) (*Node[Key, T], bool) {
 	var success bool
 	if k < n.key {
 		if !isRed(n.left) && !isRed(n.left.left) {
@@ -244,7 +246,7 @@ func (n *Node) delete(k int64) (*Node, bool) {
 	return n.fixUp(), success
 }
 
-func (n *Node) moveRedLeft() *Node {
+func (n *Node[Key, T]) moveRedLeft() *Node[Key, T] {
 	n.flipColors()
 	if isRed(n.right.left) {
 		n.right = n.right.rotateRight()
@@ -254,7 +256,7 @@ func (n *Node) moveRedLeft() *Node {
 	return n
 }
 
-func (n *Node) moveRedRight() *Node {
+func (n *Node[Key, T]) moveRedRight() *Node[Key, T] {
 	n.flipColors()
 	if isRed(n.left.left) {
 		n = n.rotateRight()
@@ -263,7 +265,7 @@ func (n *Node) moveRedRight() *Node {
 	return n
 }
 
-func (n *Node) fixUp() *Node {
+func (n *Node[Key, T]) fixUp() *Node[Key, T] {
 	if isRed(n.right) && !isRed(n.left) {
 		n = n.rotateLeft()
 	}
