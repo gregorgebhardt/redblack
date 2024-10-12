@@ -1,4 +1,4 @@
-module github.com/gregorgebhardt/redblack
+module github.com/gregorgebhardt/redblack/v2
 
 go 1.22.0
 
