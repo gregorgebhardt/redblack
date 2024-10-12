@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/gregorgebhardt/redblack"
+	"github.com/gregorgebhardt/redblack/v2"
 )
 
 func main() {
