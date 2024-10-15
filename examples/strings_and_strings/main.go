@@ -3,15 +3,19 @@ package main
 import (
 	"fmt"
 
-	"github.com/gregorgebhardt/redblack/v2"
+	"github.com/gregorgebhardt/redblack"
 )
 
 func main() {
-	values := map[string]string{
-		"a": "a",
-		"b": "b",
-		"c": "c",
+	values := []redblack.Orderable[string]{
+		redblack.Ordered("a"),
+		redblack.Ordered("b"),
+		redblack.Ordered("c"),
 	}
-	tree := redblack.NewTree(values)
+	tree, err := redblack.NewTree(values)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	fmt.Println(tree)
 }

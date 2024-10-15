@@ -114,7 +114,7 @@ func buildConnector(len int, left bool) string {
 	return sb.String()
 }
 
-func (t *Tree[Key, T]) String() string {
+func (t Tree[V, T]) String() string {
 	level := t.GetTreeLevels()
 	h := len(level)
 	strLen := 9
@@ -127,7 +127,7 @@ func (t *Tree[Key, T]) String() string {
 		stringBuilders := [4]strings.Builder{}
 		for _, n := range l {
 			if n != nil {
-				strings := boxed(fmt.Sprintf("%5.2v", n.key), n.red, i > 0, n.left != nil, n.right != nil)
+				strings := boxed(fmt.Sprint(n.value), n.red, i > 0, n.left != nil, n.right != nil)
 				for k, s := range strings {
 					stringBuilders[k].WriteString(fmt.Sprintf(format, "", s, ""))
 					stringBuilders[k].WriteRune(' ')

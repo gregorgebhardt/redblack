@@ -1,13 +1,9 @@
 package redblack
 
-import (
-	"fmt"
+import "iter"
 
-	"golang.org/x/exp/constraints"
-)
-
-type Tree[Key constraints.Ordered, T any] struct {
-	root *Node[Key, T]
+type Tree[V any, T Orderable[V]] struct {
+	root *Node[V, T]
 	num  int
 }
 
@@ -20,28 +16,32 @@ const (
 	LEVELORDER
 )
 
-func (t *Tree[Key, T]) Search(k Key) bool {
-	return t.root.search(k) != nil
+func (t *Tree[V, T]) Search(k V) (bool, V) {
+	n := t.root.search(k)
+	if n != nil {
+		return true, n.Value()
+	}
+	return false, k
 }
 
-func (t *Tree[Key, T]) SearchUpper(k Key) (Key, error) {
+func (t *Tree[V, T]) SearchUpper(k V) (V, error) {
 	if n := t.root.searchUpper(k); n != nil {
-		return n.key, nil
+		return n.Value(), nil
 	}
 	return k, KeyDoesNotExistError
 }
 
-func (t *Tree[Key, T]) SearchLower(k Key) (Key, error) {
+func (t *Tree[V, T]) SearchLower(k V) (V, error) {
 	if n := t.root.searchLower(k); n != nil {
-		return n.key, nil
+		return n.Value(), nil
 	}
 	return k, KeyDoesNotExistError
 }
 
 // Insert adds a new node to the tree.
 // Returns true if the insertion was successful and false if the node already exists
-func (t *Tree[Key, T]) Insert(key Key, value T) error {
-	newNode, err := t.root.insert(key, value)
+func (t *Tree[V, T]) Insert(item T) error {
+	newNode, err := t.root.insert(item)
 	if err != nil {
 		return err
 	}
@@ -51,69 +51,80 @@ func (t *Tree[Key, T]) Insert(key Key, value T) error {
 	return nil
 }
 
-func (t *Tree[Key, T]) Delete(v Key) (success bool) {
+func (t *Tree[V, T]) Delete(v V) (success bool) {
+	if t.root == nil {
+		return false
+	}
+
+	if found, _ := t.Search(v); !found {
+		return false
+	}
+
 	t.root, success = t.root.delete(v)
-	t.root.red = false
+	if t.root != nil {
+		t.root.red = false
+	}
 	if success {
 		t.num--
 	}
-	return success
+	return
 }
 
-func (t *Tree[Key, T]) DeleteMin() {
+func (t *Tree[V, T]) DeleteMin() {
 	if t.root != nil {
-		t.root.deleteMin()
+		t.root = t.root.deleteMin()
 		t.num--
 	}
 }
 
-func NewTree[Key constraints.Ordered, T any](items map[Key]T) *Tree[Key, T] {
-	tree := new(Tree[Key, T])
-	for k, v := range items {
-		if err := tree.Insert(k, v); err != nil {
-			fmt.Errorf("Warning: error while trying to insert %v", v)
+func NewTree[V any, T Orderable[V]](items []T) (*Tree[V, T], error) {
+	tree := new(Tree[V, T])
+	for _, v := range items {
+		if err := tree.Insert(v); err != nil {
+			return nil, err
 		}
 	}
-	return tree
+	return tree, nil
 }
 
-func (t *Tree[Key, T]) Height() int {
+func (t *Tree[V, T]) Height() int {
 	return <-t.root.height()
 }
 
-func (t *Tree[Key, T]) Len() int {
+func (t *Tree[V, T]) Len() int {
 	return t.num
 }
 
-func (t *Tree[Key, T]) Min() interface{} {
+func (t *Tree[V, T]) Min() interface{} {
 	return t.root.min().value
 }
 
-func (t *Tree[Key, T]) Max() interface{} {
+func (t *Tree[V, T]) Max() interface{} {
 	return t.root.max().value
 }
 
-func (t *Tree[Key, T]) ToSortedSlice() []interface{} {
-	values := make([]interface{}, 0, t.num)
-	f := func(n *Node[Key, T]) {
+func (t *Tree[V, T]) ToSortedSlice() []V {
+	values := make([]V, 0, t.num)
+	f := func(n *Node[V, T]) bool {
 		if n != nil {
-			values = append(values, n.value)
+			values = append(values, n.Value())
 		}
+		return true
 	}
 	t.root.walkInOrder(f)
 	return values
 }
 
-func (t *Tree[Key, T]) GetTreeLevels() [][]*Node[Key, T] {
+func (t *Tree[V, T]) GetTreeLevels() [][]*Node[V, T] {
 	h := t.Height()
-	level := make([][]*Node[Key, T], h)
+	level := make([][]*Node[V, T], h)
 
-	thisLevel := make([]*Node[Key, T], 1)
+	thisLevel := make([]*Node[V, T], 1)
 	thisLevel[0] = t.root
 
 	for l := 0; l < h; l++ {
 		level[l] = thisLevel
-		nextLevel := make([]*Node[Key, T], int(1<<(l+1)))
+		nextLevel := make([]*Node[V, T], int(1<<(l+1)))
 		for i, v := range thisLevel {
 			if v == nil {
 				continue
@@ -128,7 +139,19 @@ func (t *Tree[Key, T]) GetTreeLevels() [][]*Node[Key, T] {
 	return level
 }
 
-func (t *Tree[Key, T]) Walk(f func(*Node[Key, T]), order WalkOrder) {
+func (t Tree[V, T]) Sorted() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		f := func(n *Node[V, T]) bool {
+			if n != nil {
+				return yield(n.Value())
+			}
+			return true
+		}
+		t.Walk(f, INORDER)
+	}
+}
+
+func (t *Tree[V, T]) Walk(f func(*Node[V, T]) bool, order WalkOrder) {
 	switch order {
 	case INORDER:
 		t.root.walkInOrder(f)
@@ -137,25 +160,26 @@ func (t *Tree[Key, T]) Walk(f func(*Node[Key, T]), order WalkOrder) {
 	case POSTORDER:
 		t.root.walkPostOrder(f)
 	case LEVELORDER:
-		t.root.walkLevelOrder(make([]*Node[Key, T], 0, t.num), f)
+		t.root.walkLevelOrder(make([]*Node[V, T], 0, t.num), f)
 	}
 }
 
-func (t *Tree[Key, T]) checkRedRed() bool {
+func (t *Tree[V, T]) checkNoRedRed() bool {
 	noRedRed := true
-	f := func(n *Node[Key, T]) {
+	f := func(n *Node[V, T]) bool {
 		if isRed(n) && (isRed(n.left) || isRed(n.right)) {
 			noRedRed = false
 		}
+		return true
 	}
 	t.root.walkPreOrder(f)
 	return noRedRed
 }
 
-func (t *Tree[Key, T]) checkBlackHeight() (uint, bool) {
+func (t *Tree[V, T]) checkBlackHeight() (uint, bool) {
 	blackHeightStack := make([]uint, 0, 10)
 	blackHeightSame := true
-	f := func(n *Node[Key, T]) {
+	f := func(n *Node[V, T]) bool {
 		if n == nil {
 			blackHeightStack = append(blackHeightStack, 1)
 		} else {
@@ -171,17 +195,19 @@ func (t *Tree[Key, T]) checkBlackHeight() (uint, bool) {
 				blackHeightStack[last-1]++
 			}
 		}
+		return true
 	}
 	t.root.walkPostOrder(f)
 	return blackHeightStack[0], blackHeightSame
 }
 
-func (t *Tree[Key, T]) checkLeftLeaning() bool {
+func (t *Tree[V, T]) checkLeftLeaning() bool {
 	leftLeaning := true
-	f := func(n *Node[Key, T]) {
+	f := func(n *Node[V, T]) bool {
 		if n != nil && (!isRed(n.left) && isRed(n.right)) {
 			leftLeaning = false
 		}
+		return true
 	}
 	t.root.walkPreOrder(f)
 	return leftLeaning
