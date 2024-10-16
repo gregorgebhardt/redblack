@@ -77,10 +77,13 @@ func (t *Tree[V, T]) DeleteMin() {
 	}
 }
 
-func NewTree[V any, T Orderable[V]](items []T) (*Tree[V, T], error) {
+func NewTree[V any, T Orderable[V]](items []T, ignore_duplicates bool) (*Tree[V, T], error) {
 	tree := new(Tree[V, T])
 	for _, v := range items {
 		if err := tree.Insert(v); err != nil {
+			if err == KeyExistsError && ignore_duplicates {
+				continue
+			}
 			return nil, err
 		}
 	}

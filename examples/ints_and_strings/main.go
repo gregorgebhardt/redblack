@@ -12,7 +12,7 @@ func main() {
 		redblack.Ordered(2),
 		redblack.Ordered(3),
 	}
-	tree, err := redblack.NewTree(values)
+	tree, err := redblack.NewTree(values, false)
 	if err != nil {
 		fmt.Println(err)
 		return

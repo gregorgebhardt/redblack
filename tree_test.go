@@ -11,14 +11,17 @@ import (
 	"github.com/gregorgebhardt/redblack"
 )
 
-func TestRBTree_NewRBTree(t1 *testing.T) {
+func TestTree_NewTree(t1 *testing.T) {
 	tests := []struct {
-		name   string
-		values []int
+		name              string
+		values            []int
+		ignore_duplicates bool
+		want_err          bool
 	}{
-		{"Test1", []int{1, 2, 3, 4, 5, 6, 7, 8}},
-		{"Test2", []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}},
-		{"Test3", rand.Perm(64)},
+		{"Successful", []int{1, 2, 3, 4, 5, 6, 7, 8}, false, false},
+		{"Duplicate", []int{1, 2, 3, 4, 5, 6, 7, 8, 8}, false, true},
+		{"Duplicate Ignore", []int{1, 2, 3, 4, 5, 6, 7, 8, 8}, true, false},
+		{"Many items", rand.Perm(1024), false, false},
 	}
 
 	for _, tt := range tests {
@@ -30,9 +33,13 @@ func TestRBTree_NewRBTree(t1 *testing.T) {
 			for _, v := range tt.values {
 				vals = append(vals, redblack.Ordered(v))
 			}
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, tt.ignore_duplicates)
+			if (err != nil) != tt.want_err || (err != nil && err != redblack.KeyExistsError) {
+				t1.Errorf("NewTree() error = %v, wantErr %v", err, tt.want_err)
+				return
+			}
+			// break tests if an error is expected
 			if err != nil {
-				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
 			}
 
@@ -72,7 +79,7 @@ func TestTree_Height(t1 *testing.T) {
 			for _, v := range tt.values {
 				vals = append(vals, redblack.Ordered(v))
 			}
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -109,7 +116,7 @@ func TestTree_Insert(t1 *testing.T) {
 			for _, v := range tt.values {
 				vals = append(vals, redblack.Ordered(v))
 			}
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -157,7 +164,7 @@ func TestTree_Delete(t1 *testing.T) {
 			for _, v := range tt.values {
 				vals = append(vals, redblack.Ordered(v))
 			}
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -207,7 +214,7 @@ func TestTree_DeleteMin(t1 *testing.T) {
 			for _, v := range tt.values {
 				vals = append(vals, redblack.Ordered(v))
 			}
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -249,7 +256,7 @@ func TestTree_ToSortedSlice(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 			//fmt.Println(tt.values)
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -289,7 +296,7 @@ func TestTree_checkBlackHeight(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 			//fmt.Println(tt.values)
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -325,7 +332,7 @@ func TestTree_checkRedRed(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -364,7 +371,7 @@ func TestTree_SearchUpper(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -406,7 +413,7 @@ func TestTree_SearchLower(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -444,7 +451,7 @@ func TestTree_Walk(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
@@ -487,7 +494,7 @@ func TestTree_Sorted(t1 *testing.T) {
 				vals = append(vals, redblack.Ordered(v))
 			}
 
-			t, err := redblack.NewTree(vals)
+			t, err := redblack.NewTree(vals, false)
 			if err != nil {
 				t1.Errorf("redblack.NewTree() error = %v", err)
 				return
