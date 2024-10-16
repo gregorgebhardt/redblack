@@ -27,5 +27,4 @@ go run examples/ints_and_strings
 
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
-
+This project is licensed under the Unlicense - see the [LICENSE](LICENSE) file for details.
