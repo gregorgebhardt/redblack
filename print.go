@@ -114,6 +114,7 @@ func buildConnector(len int, left bool) string {
 	return sb.String()
 }
 
+// String returns a string representation of the tree.
 func (t Tree[V, T]) String() string {
 	level := t.GetTreeLevels()
 	h := len(level)
