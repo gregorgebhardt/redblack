@@ -5,7 +5,7 @@ import (
 )
 
 type Orderable[T any] interface {
-	// returns -1 if the receiver is less than other, 0 if they are equal, 1 if the receiver is greater than other
+	// returns a value < 0 if the receiver is less than other, 0 if they are equal, and > 0 if the receiver is greater than other
 	CompareTo(other T) int
 	Value() T
 }

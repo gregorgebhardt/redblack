@@ -96,15 +96,13 @@ func (n *Node[V, T]) search(k V) *Node[V, T] {
 		return nil
 	}
 
-	switch n.value.CompareTo(k) {
-	case 0:
+	if c := n.value.CompareTo(k); c == 0 {
 		return n
-	case -1:
+	} else if c < 0 {
 		return n.right.search(k)
-	case 1:
-		return n.left.search(k)
 	}
-	return nil
+
+	return n.left.search(k)
 }
 
 func (n *Node[V, T]) searchUpper(k V) *Node[V, T] {
@@ -112,20 +110,17 @@ func (n *Node[V, T]) searchUpper(k V) *Node[V, T] {
 		return nil
 	}
 
-	switch n.value.CompareTo(k) {
-	case 0:
+	if c := n.value.CompareTo(k); c == 0 {
 		return n
-	case 1:
-		nc := n.left.searchUpper(k)
-		if nc == nil {
-			return n
-		}
-		return nc
-	case -1:
+	} else if c < 0 {
 		return n.right.searchUpper(k)
 	}
 
-	return nil
+	nc := n.left.searchUpper(k)
+	if nc == nil {
+		return n
+	}
+	return nc
 }
 
 func (n *Node[V, T]) searchLower(k V) *Node[V, T] {
@@ -133,20 +128,16 @@ func (n *Node[V, T]) searchLower(k V) *Node[V, T] {
 		return nil
 	}
 
-	switch n.value.CompareTo(k) {
-	case 0:
+	if c := n.value.CompareTo(k); c == 0 {
 		return n
-	case 1:
-		return n.left.searchLower(k)
-	case -1:
+	} else if c < 0 {
 		nc := n.right.searchLower(k)
 		if nc == nil {
 			return n
 		}
 		return nc
 	}
-
-	return nil
+	return n.left.searchLower(k)
 }
 
 type keyError string
@@ -155,8 +146,10 @@ func (e keyError) Error() string {
 	return string(e)
 }
 
-const KeyExistsError = keyError("Key already exists in tree.")
-const KeyDoesNotExistError = keyError("Key not found.")
+const (
+	KeyExistsError       = keyError("Key already exists in tree.")
+	KeyDoesNotExistError = keyError("Key not found.")
+)
 
 func (n *Node[V, T]) insert(item T) (*Node[V, T], error) {
 	if n == nil {
@@ -167,21 +160,20 @@ func (n *Node[V, T]) insert(item T) (*Node[V, T], error) {
 		n.flipColors()
 	}
 
-	switch n.value.CompareTo(item.Value()) {
-	case 0:
+	if c := n.value.CompareTo(item.Value()); c == 0 {
 		return nil, KeyExistsError
-	case 1:
-		newNode, err := n.left.insert(item)
-		if err != nil {
-			return nil, err
-		}
-		n.left = newNode
-	case -1:
+	} else if c < 0 {
 		newNode, err := n.right.insert(item)
 		if err != nil {
 			return nil, err
 		}
 		n.right = newNode
+	} else {
+		newNode, err := n.left.insert(item)
+		if err != nil {
+			return nil, err
+		}
+		n.left = newNode
 	}
 
 	n = n.fixUp()
@@ -237,7 +229,7 @@ func (n *Node[V, T]) delete(k V) (*Node[V, T], bool) {
 	}
 
 	var success bool
-	if n.value.CompareTo(k) == 1 {
+	if n.value.CompareTo(k) > 0 {
 		if !isRed(n.left) && !isRed(n.left.left) {
 			n = n.moveRedLeft()
 		}
