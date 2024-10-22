@@ -8,7 +8,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/gregorgebhardt/redblack"
+	"github.com/gregorgebhardt/redblack/v2"
 )
 
 func TestTree_NewTree(t1 *testing.T) {
